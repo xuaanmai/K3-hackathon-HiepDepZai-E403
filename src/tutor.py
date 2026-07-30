@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from collections.abc import Mapping, Sequence
 from typing import Any, Protocol
 
@@ -80,8 +81,17 @@ def _validate_grounding(
             if f"[{source_id}]" not in (response.answer or "")
         ]
         if missing_inline:
-            raise TutorOutputError(
-                "Answer is missing inline citations: " + ", ".join(missing_inline)
+            # The model occasionally returns valid `citations` in structured
+            # output but forgets to repeat them inside `answer`. Unknown IDs
+            # were already rejected above, so appending the verified IDs is a
+            # safe formatting repair rather than inventing a source.
+            citation_suffix = " ".join(
+                f"[{source_id}]" for source_id in missing_inline
+            )
+            response = response.model_copy(
+                update={
+                    "answer": f"{(response.answer or '').rstrip()} {citation_suffix}"
+                }
             )
 
     return response
@@ -91,6 +101,7 @@ def answer_question(
     question: str,
     sources: Sequence[SourceChunk | Mapping[str, Any]],
     *,
+    history: Sequence[Mapping[str, str]] = (),
     client: GeminiClient | None = None,
     model: str | None = None,
 ) -> TutorResponse:
@@ -125,11 +136,15 @@ def answer_question(
     try:
         api_response = client.models.generate_content(
             model=selected_model,
-            contents=format_tutor_input(cleaned_question, normalized_sources),
+            contents=format_tutor_input(
+                cleaned_question,
+                normalized_sources,
+                history=history,
+            ),
             config=types.GenerateContentConfig(
                 system_instruction=TUTOR_SYSTEM_PROMPT,
                 response_mime_type="application/json",
-                response_schema=TutorResponse,
+                response_json_schema=TutorResponse.model_json_schema(),
                 temperature=0.1,
             ),
         )
@@ -146,5 +161,14 @@ def answer_question(
         response = TutorResponse.model_validate_json(response_text)
     except (ValidationError, ValueError) as exc:
         raise TutorOutputError(f"Invalid structured Tutor response: {exc}") from exc
+
+    if (
+        response.decision == "answer"
+        and response.corrected_premise is None
+        and re.search(r"\b(đúng không|phải không)\s*\??$", cleaned_question, re.IGNORECASE)
+        and re.match(r"^\s*(không|chưa đúng)", response.answer or "", re.IGNORECASE)
+    ):
+        first_sentence = re.split(r"(?<=[.!?])\s+", response.answer or "", maxsplit=1)[0]
+        response = response.model_copy(update={"corrected_premise": first_sentence})
 
     return _validate_grounding(response, normalized_sources)

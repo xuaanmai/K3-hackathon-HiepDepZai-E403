@@ -54,7 +54,7 @@ def test_answer_branch_accepts_valid_inline_citation():
 
     assert result == expected
     request = client.models.last_request
-    assert request["config"].response_schema is TutorResponse
+    assert request["config"].response_json_schema == TutorResponse.model_json_schema()
     assert request["config"].response_mime_type == "application/json"
     assert "T01-S03" in request["contents"]
 
@@ -95,7 +95,7 @@ def test_unknown_citation_is_rejected():
         answer_question("Câu hỏi", SOURCES, client=FakeClient(response))
 
 
-def test_missing_inline_citation_is_rejected():
+def test_missing_inline_citation_is_repaired_with_verified_source():
     response = TutorResponse(
         decision="answer",
         answer="RAG truy xuất tài liệu trước khi trả lời.",
@@ -103,8 +103,10 @@ def test_missing_inline_citation_is_rejected():
         clarification=None,
         reason="Có nguồn nhưng chưa chèn citation.",
     )
-    with pytest.raises(TutorOutputError, match="missing inline"):
-        answer_question("Câu hỏi", SOURCES, client=FakeClient(response))
+    result = answer_question("Câu hỏi", SOURCES, client=FakeClient(response))
+
+    assert result.answer == "RAG truy xuất tài liệu trước khi trả lời. [T01-S03]"
+    assert result.citations == ["T01-S03"]
 
 
 def test_schema_rejects_answer_without_citation():

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "description": "10 quality checks for lesson-level quiz generation",
+  "quality_bar": {
+    "overall_pass_rate": 80,
+    "hard_requirements": ["QZ-001", "QZ-002", "QZ-007"]
+  },
+  "cases": [
+    {"id": "QZ-001", "criterion": "Đủ số lượng câu cho một buổi", "mode": "live_gemini"},
+    {"id": "QZ-002", "criterion": "Đủ số lượng câu khi kết hợp nhiều buổi", "mode": "live_gemini"},
+    {"id": "QZ-003", "criterion": "Quiz một buổi không trích nguồn từ buổi khác", "mode": "live_gemini"},
+    {"id": "QZ-004", "criterion": "Quiz nhiều buổi phủ nguồn của mọi buổi đã chọn", "mode": "live_gemini"},
+    {"id": "QZ-005", "criterion": "Không có câu hỏi trùng nhau", "mode": "live_gemini"},
+    {"id": "QZ-006", "criterion": "Mỗi câu có bốn lựa chọn duy nhất và đúng một đáp án", "mode": "live_gemini"},
+    {"id": "QZ-007", "criterion": "Mọi source ID đều thuộc tài liệu đã chọn", "mode": "live_gemini"},
+    {"id": "QZ-008", "criterion": "Đáp án và giải thích có tín hiệu nội dung trong nguồn", "mode": "live_gemini"},
+    {"id": "QZ-009", "criterion": "Parser xử lý JSON biến thể của Gemini", "mode": "deterministic_regression"},
+    {"id": "QZ-010", "criterion": "Câu bỏ trống được ghi nhận và tính sai khi vẫn nộp", "mode": "deterministic_regression"}
+  ]
+}

@@ -32,6 +32,29 @@ Trả về JSON theo schema Quiz đã cung cấp.
 """.strip()
 
 
+LESSON_QUIZ_SYSTEM_PROMPT = """
+Bạn là trợ lý tạo bộ câu hỏi trắc nghiệm tổng hợp cho MỘT HOẶC NHIỀU BUỔI HỌC.
+
+NHIỆM VỤ
+Tạo đúng số câu hỏi được yêu cầu từ toàn bộ VERIFIED LESSON SOURCES.
+
+QUY TẮC
+1. Chỉ dùng thông tin trong nguồn được cung cấp, tuyệt đối không dùng kiến thức ngoài.
+2. Phân bố câu hỏi trên nhiều phần/trang; nếu có nhiều buổi, phải phủ kiến thức
+   của tất cả các buổi được cung cấp, không tập trung vào riêng một buổi.
+3. Không tạo hai câu hỏi trùng ý hoặc chỉ thay cách diễn đạt.
+4. Mỗi câu có đúng 4 lựa chọn A, B, C, D và chỉ một đáp án đúng.
+5. Đáp án nhiễu phải hợp lý nhưng sai theo tài liệu.
+6. explanation giải thích ngắn gọn, giúp người học hiểu lại kiến thức.
+7. source_ids chỉ chứa SOURCE_ID thực sự hỗ trợ đáp án.
+8. Không hỏi về số trang, tên file, bố cục slide hoặc chi tiết trang trí.
+9. Ưu tiên câu hỏi về khái niệm, so sánh, quy trình, ứng dụng và lỗi hiểu thường gặp.
+
+ĐỊNH DẠNG OUTPUT
+Trả về JSON theo schema QuizSet đã cung cấp.
+""".strip()
+
+
 def format_quiz_input(
     response: TutorResponse,
     verified_sources: Sequence[SourceChunk],
@@ -66,4 +89,25 @@ def format_quiz_input(
         "<VERIFIED_SOURCES>\n"
         f"{joined_sources}\n"
         "</VERIFIED_SOURCES>"
+    )
+
+
+def format_lesson_quiz_input(
+    sources: Sequence[SourceChunk],
+    question_count: int,
+) -> str:
+    """Build the grounded input for a lesson-level quiz set."""
+    source_blocks = []
+    for source in sources:
+        metadata = " · ".join(part for part in (source.lesson, source.section) if part)
+        heading = f"[{source.source_id}]"
+        if metadata:
+            heading += f" {metadata}"
+        source_blocks.append(f"{heading}\n{source.content}")
+
+    return (
+        f"<QUESTION_COUNT>{question_count}</QUESTION_COUNT>\n\n"
+        "<VERIFIED_LESSON_SOURCES>\n"
+        + "\n\n".join(source_blocks)
+        + "\n</VERIFIED_LESSON_SOURCES>"
     )

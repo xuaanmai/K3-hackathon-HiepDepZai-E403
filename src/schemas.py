@@ -141,3 +141,19 @@ class Quiz(BaseModel):
 
         return self
 
+
+class QuizSet(BaseModel):
+    """A lesson-level collection of grounded multiple-choice questions."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    title: str = Field(min_length=1)
+    questions: list[Quiz] = Field(min_length=1, max_length=30)
+
+    @model_validator(mode="after")
+    def validate_question_uniqueness(self) -> "QuizSet":
+        normalized = [" ".join(item.question.casefold().split()) for item in self.questions]
+        if len(normalized) != len(set(normalized)):
+            raise ValueError("Quiz questions must be unique")
+        return self
+
