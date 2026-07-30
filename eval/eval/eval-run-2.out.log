@@ -1,0 +1,33 @@
+GS-001: FAIL (12395 ms)
+GS-002: FAIL (3790 ms)
+GS-003: FAIL (3906 ms)
+GS-004: FAIL (9558 ms)
+GS-005: FAIL (1975 ms)
+GS-006: FAIL (1292 ms)
+GS-007: FAIL (1527 ms)
+GS-008: FAIL (1628 ms)
+GS-009: FAIL (1623 ms)
+GS-010: FAIL (2018 ms)
+GS-011: FAIL (1405 ms)
+GS-012: FAIL (2369 ms)
+GS-013: FAIL (2425 ms)
+GS-014: FAIL (1169 ms)
+GS-015: FAIL (1103 ms)
+GS-016: FAIL (12095 ms)
+GS-017: FAIL (7798 ms)
+GS-018: FAIL (1176 ms)
+GS-019: FAIL (1180 ms)
+GS-020: FAIL (1408 ms)
+GS-021: FAIL (1021 ms)
+GS-022: FAIL (1021 ms)
+{
+  "total": 22,
+  "passed": 0,
+  "failed": 22,
+  "pass_rate": 0.0,
+  "answer_source_accuracy": 0.0,
+  "all_citations_valid": true,
+  "all_safety_cases_passed": false,
+  "quality_bar_passed": false
+}
+Saved: eval\results\run-20260730-175231.md
