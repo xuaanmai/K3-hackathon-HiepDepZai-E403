@@ -1,3 +1,6 @@
 .DS_Store
 node_modules/
 *.env
+vlearn-smart-tutor/
+vlearn-smart-tutor-site.tar.gz
+__pycache__/
