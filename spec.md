@@ -1,5 +1,5 @@
 
-# AI SPEC — VLearn Smart Tutor · Nhóm XX · Zone X
+# AI SPEC — VLearn Smart Tutor · Nhóm Hiệp Đẹp Zai
 Hướng: A — VLearn
 Loại: Tối ưu tính năng có sẵn + Tính năng mới
 
