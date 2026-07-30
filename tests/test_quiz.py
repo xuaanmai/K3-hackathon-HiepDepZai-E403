@@ -5,8 +5,13 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.schemas import Quiz, QuizOption, SourceChunk, TutorResponse
-from src.quiz import QuizGenerationError, generate_quiz
+from src.schemas import Quiz, QuizOption, QuizSet, SourceChunk, TutorResponse
+from src.quiz import (
+    QuizGenerationError,
+    generate_lesson_quiz,
+    generate_quiz,
+    grade_quiz,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -105,7 +110,7 @@ class TestQuizGeneration:
         generate_quiz(response, MOCK_SOURCES, client=client)
 
         request = client.models.last_request
-        assert request["config"].response_schema is Quiz
+        assert request["config"].response_json_schema == Quiz.model_json_schema()
         assert request["config"].response_mime_type == "application/json"
 
     def test_verified_sources_only_in_prompt(self):
@@ -117,6 +122,144 @@ class TestQuizGeneration:
         assert "T01-S03" in contents
         # T01-S04 is not cited, so should NOT appear in prompt
         assert "T01-S04" not in contents
+
+
+class TestLessonQuizGeneration:
+    def test_generates_requested_lesson_quiz_set(self):
+        questions = [
+            Quiz(
+                question=f"Câu tổng hợp số {index + 1}?",
+                options=[
+                    QuizOption(label="A", text="Đáp án đúng"),
+                    QuizOption(label="B", text="Đáp án nhiễu 1"),
+                    QuizOption(label="C", text="Đáp án nhiễu 2"),
+                    QuizOption(label="D", text="Đáp án nhiễu 3"),
+                ],
+                correct_label="A",
+                explanation="Dựa trên nội dung bài học.",
+                source_ids=["T01-S03"],
+            )
+            for index in range(10)
+        ]
+        expected = QuizSet(title="Quiz tổng hợp", questions=questions)
+        client = FakeClient(expected)
+
+        result = generate_lesson_quiz(MOCK_SOURCES, 10, client=client)
+
+        assert len(result.questions) == 10
+        config = client.models.last_request["config"]
+        assert config.response_json_schema is None
+        assert config.response_mime_type == "application/json"
+        assert "<QUESTION_COUNT>10</QUESTION_COUNT>" in (
+            client.models.last_request["contents"]
+        )
+        assert "T01-S03" in client.models.last_request["contents"]
+        assert "T01-S04" in client.models.last_request["contents"]
+
+    def test_rejects_unsupported_question_count(self):
+        with pytest.raises(QuizGenerationError, match="10, 20, or 30"):
+            generate_lesson_quiz(MOCK_SOURCES, 15, client=FakeClient(None))
+
+    def test_accepts_direct_question_array_from_gemini(self):
+        questions = [
+            Quiz(
+                question=f"Câu tổng hợp trực tiếp {index + 1}?",
+                options=[
+                    QuizOption(label="A", text="Đúng"),
+                    QuizOption(label="B", text="Sai 1"),
+                    QuizOption(label="C", text="Sai 2"),
+                    QuizOption(label="D", text="Sai 3"),
+                ],
+                correct_label="A",
+                explanation="Dựa trên nguồn.",
+                source_ids=["T01-S03"],
+            ).model_dump(mode="json")
+            for index in range(10)
+        ]
+
+        result = generate_lesson_quiz(
+            MOCK_SOURCES,
+            10,
+            client=FakeClient(questions),
+        )
+
+        assert result.title == "Quiz tổng hợp buổi học"
+        assert len(result.questions) == 10
+
+    def test_normalizes_option_map_and_answer_field(self):
+        questions = [
+            {
+                "question": f"Câu theo định dạng Gemini {index + 1}?",
+                "options": {
+                    "A": "Đúng",
+                    "B": "Sai 1",
+                    "C": "Sai 2",
+                    "D": "Sai 3",
+                },
+                "answer": "A",
+                "explanation": "Dựa trên nguồn.",
+                "source_ids": ["T01-S03"],
+            }
+            for index in range(10)
+        ]
+
+        result = generate_lesson_quiz(
+            MOCK_SOURCES,
+            10,
+            client=FakeClient(questions),
+        )
+
+        assert result.questions[0].correct_label == "A"
+        assert [item.label for item in result.questions[0].options] == [
+            "A",
+            "B",
+            "C",
+            "D",
+        ]
+
+    def test_rejects_unknown_lesson_source(self):
+        question = Quiz(
+            question="Câu hỏi có nguồn giả?",
+            options=[
+                QuizOption(label="A", text="A"),
+                QuizOption(label="B", text="B"),
+                QuizOption(label="C", text="C"),
+                QuizOption(label="D", text="D"),
+            ],
+            correct_label="A",
+            explanation="Giải thích.",
+            source_ids=["UNKNOWN"],
+        )
+        quiz_set = QuizSet(
+            title="Quiz tổng hợp",
+            questions=[
+                question.model_copy(update={"question": f"Câu {index + 1}?"})
+                for index in range(10)
+            ],
+        )
+        with pytest.raises(QuizGenerationError, match="not in verified set"):
+            generate_lesson_quiz(MOCK_SOURCES, 10, client=FakeClient(quiz_set))
+
+
+class TestQuizGrading:
+    def test_blank_answers_are_reported_and_counted_wrong(self):
+        quiz_set = QuizSet(
+            title="Bài kiểm tra",
+            questions=[
+                VALID_QUIZ.model_copy(update={"question": f"Câu {index + 1}?"})
+                for index in range(3)
+            ],
+        )
+
+        score, unanswered = grade_quiz(quiz_set, ["B", None, "A"])
+
+        assert score == 1
+        assert unanswered == [2]
+
+    def test_answer_count_must_match_questions(self):
+        quiz_set = QuizSet(title="Bài kiểm tra", questions=[VALID_QUIZ])
+        with pytest.raises(ValueError, match="answers length"):
+            grade_quiz(quiz_set, [])
 
 
 # ---------------------------------------------------------------------------

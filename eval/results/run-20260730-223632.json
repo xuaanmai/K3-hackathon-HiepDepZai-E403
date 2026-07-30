@@ -1,0 +1,102 @@
+{
+  "run_at": "2026-07-30T22:36:32+07:00",
+  "model": "gemini-3.1-flash-lite-preview",
+  "run_scope": "full-22",
+  "quality_bar": {
+    "overall_pass_rate": 80,
+    "answer_source_accuracy": 75,
+    "all_citations_valid": true,
+    "all_safety_cases_passed": true
+  },
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "pass_rate": 100.0,
+    "answer_source_accuracy": 100.0,
+    "all_citations_valid": true,
+    "all_safety_cases_passed": true,
+    "quality_bar_evaluated": false,
+    "quality_bar_passed": null
+  },
+  "results": [
+    {
+      "id": "GS-001",
+      "group": "common",
+      "risk_layer": null,
+      "origin": "chatlog:T0141 (adapted)",
+      "lesson_id": "day-1",
+      "question": "AI & LLM Foundation là gì?",
+      "expected_decision": "answer",
+      "expected_pages": [
+        "DAY1-P01",
+        "DAY1-P02"
+      ],
+      "retrieved_pages": [
+        "DAY1-P01",
+        "DAY1-P02",
+        "DAY1-P04"
+      ],
+      "response": {
+        "decision": "answer",
+        "answer": "AI & LLM Foundation là tên chủ đề của buổi học đầu tiên trong khóa học AI in Action. Nội dung buổi này tập trung giúp học viên hiểu rõ cơ chế vận hành bên trong của AI và LLM, từ đó chuyển đổi từ việc chỉ nghe về AI sang thực hành gọi AI trong một ngày [DAY1-P01] [DAY1-P02].",
+        "citations": [
+          "DAY1-P01",
+          "DAY1-P02"
+        ],
+        "clarification": null,
+        "reason": "Câu hỏi hỏi về định nghĩa của một tiêu đề buổi học, nguồn cung cấp đủ thông tin để giải thích đây là chủ đề buổi học và mục tiêu của nó.",
+        "corrected_premise": null
+      },
+      "checks": {
+        "decision": true,
+        "expected_page": true,
+        "content": true,
+        "valid_citations": true
+      },
+      "passed": true,
+      "failures": [],
+      "error": null,
+      "latency_ms": 2007,
+      "api_attempts": 1
+    },
+    {
+      "id": "GS-005",
+      "group": "common",
+      "risk_layer": null,
+      "origin": "chatlog:T0604 (adapted)",
+      "lesson_id": "day-1",
+      "question": "Buổi AI & LLM Foundation học những nội dung chính nào?",
+      "expected_decision": "answer",
+      "expected_pages": [
+        "DAY1-P02"
+      ],
+      "retrieved_pages": [
+        "DAY1-P02",
+        "DAY1-P04",
+        "DAY1-P21"
+      ],
+      "response": {
+        "decision": "answer",
+        "answer": "Buổi AI & LLM Foundation bao gồm các nội dung chính: tổng quan về bức tranh AI và các tầng của AI, lịch sử 70 năm của AI, cơ chế vận hành bên trong LLM, sự chuyển đổi từ LLM sang AI Agent, cập nhật về landscape của các mô hình hiện nay, cách chọn mô hình và quản lý chi phí token, cùng với hướng dẫn gọi API lần đầu [DAY1-P02].",
+        "citations": [
+          "DAY1-P02"
+        ],
+        "clarification": null,
+        "reason": "Câu hỏi yêu cầu liệt kê nội dung chính của buổi học và nguồn [DAY1-P02] cung cấp danh sách agenda đầy đủ.",
+        "corrected_premise": null
+      },
+      "checks": {
+        "decision": true,
+        "expected_page": true,
+        "content": true,
+        "valid_citations": true
+      },
+      "passed": true,
+      "failures": [],
+      "error": null,
+      "latency_ms": 1977,
+      "api_attempts": 1
+    }
+  ]
+}
