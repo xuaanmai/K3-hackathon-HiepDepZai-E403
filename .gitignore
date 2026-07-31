@@ -1,7 +1,27 @@
 .DS_Store
 node_modules/
 *.env
+.env
+.streamlit/secrets.toml
+streamlit.out.log
+streamlit.err.log
+streamlit*.log
+streamlit*.pid
+.vlearn_chat_history.json
+eval/*.log
+eval/*.pid
 vlearn-smart-tutor/
 vlearn-smart-tutor-site.tar.gz
 __pycache__/
-eval/
+.pytest_cache/
+.docx-qa/
+.venv/
+.cache/
+storage/
+
+# Data pack của khóa học chỉ được giữ local, không đưa vào repo nộp bài.
+data/vlearn-pack/
+data/processed/
+
+# Chưa có xác nhận quyền chia sẻ công khai hai PDF slide.
+tài liệu/
