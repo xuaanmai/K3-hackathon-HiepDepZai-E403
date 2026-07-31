@@ -4,3 +4,4 @@ node_modules/
 vlearn-smart-tutor/
 vlearn-smart-tutor-site.tar.gz
 __pycache__/
+eval/
